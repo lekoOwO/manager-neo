@@ -1,0 +1,7 @@
+/target/
+/backend/target/
+/frontend/node_modules/
+/frontend/dist/
+/.env
+/.manager-neo/data/
+**/*.bak
