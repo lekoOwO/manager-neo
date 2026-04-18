@@ -1,0 +1,80 @@
+name: CI and Release
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        run: |
+          npm i -g pnpm
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          pnpm build
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Build backend (release)
+        run: |
+          cargo build --manifest-path backend/Cargo.toml --release
+
+      - name: Package artifacts
+        run: |
+          mkdir -p dist
+          # backend binary
+          BIN_PATH=$(ls target/release | grep manager || true)
+          if [ -f target/release/manager-neo-backend ]; then
+            cp target/release/manager-neo-backend dist/manager-neo-backend
+          else
+            # try to find any executable in target/release
+            cp $(ls target/release | grep -E '^(manager|manager-neo|manager-neo-backend)$' || true) dist/ || true
+          fi
+          # frontend dist
+          if [ -d frontend/dist ]; then
+            tar -czf dist/frontend-dist.tar.gz -C frontend dist
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ci-${{ github.run_id }}
+          release_name: CI build ${{ github.run_id }}
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        uses: softprops/action-upload-release-asset@v1
+        with:
+          files: dist/*
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List workflow runs
+        run: gh run list --limit 5 || true
