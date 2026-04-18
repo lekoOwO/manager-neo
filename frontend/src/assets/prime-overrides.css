@@ -1,0 +1,250 @@
+/* PrimeVue Toast overrides for manager-neo dark industrial theme */
+
+/* Ensure toast text is visible on dark background */
+.p-toast {
+  color: #e6edf3 !important;
+}
+
+.p-toast .p-toast-message {
+  color: #e6edf3 !important;
+  background-color: #0b0b0d !important; /* panel dark */
+  border: 1px solid #27272a !important; /* 1px protocol */
+  box-shadow: none !important; /* no shadows per design */
+}
+
+.p-toast .p-toast-message .p-toast-summary {
+  color: #e6edf3 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.p-toast .p-toast-message .p-toast-detail {
+  color: #cbd5e1 !important;
+}
+
+.p-toast .p-toast-icon {
+  color: #22d3ee !important; /* cyan-400 */
+  text-shadow: 0 0 8px rgba(34,211,238,0.16);
+}
+
+/* Severity-specific accents */
+.p-toast .p-toast-message.p-toast-success { background-color: #062b2f !important; border-color:#084b4f !important; }
+.p-toast .p-toast-message.p-toast-warn    { background-color: #2b1f0a !important; border-color:#4b2f08 !important; color:#ffd580 !important; }
+.p-toast .p-toast-message.p-toast-error   { background-color: #2a0a0a !important; border-color:#4b0808 !important; color:#ffb3b3 !important; }
+.p-toast .p-toast-message.p-toast-info    { background-color: #071222 !important; border-color:#08324b !important; color:#a6e7ff !important; }
+
+/* Remove default PrimeVue gradients/overrides that may have dark text */
+.p-toast .p-toast-message, .p-toast .p-toast-message * {
+  background-image: none !important;
+}
+
+/* Confirm dialog (PrimeVue ConfirmDialog) overrides for industrial dark theme */
+.p-confirm-dialog, .p-confirm-dialog .p-dialog {
+  color: #e6edf3 !important;
+  background-color: #0b0b0d !important; /* panel dark */
+  border: 1px solid #27272a !important; /* 1px protocol */
+  box-shadow: none !important;
+  border-radius: 2px !important; /* rounded-sm */
+  overflow: hidden;
+}
+
+/* subtle hazard stripe at the top */
+.p-confirm-dialog::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background-image: repeating-linear-gradient(135deg, rgba(255,195,0,0.10) 0 6px, rgba(0,0,0,0) 6px 12px);
+}
+
+/* Title bar */
+.p-confirm-dialog .p-dialog-title {
+  color: #e6edf3 !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  padding: 0.6rem 1rem;
+}
+
+/* Message */
+.p-confirm-dialog .p-confirm-message,
+.p-confirm-dialog .p-dialog-content {
+  color: #cbd5e1 !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+
+/* Icon */
+.p-confirm-dialog .p-confirm-icon {
+  color: #22d3ee !important;
+  text-shadow: 0 0 8px rgba(34,211,238,0.12);
+  font-size: 1.25rem;
+  margin-right: 0.6rem;
+}
+
+/* Buttons: remove gradients, 1px border, no shadow */
+.p-confirm-dialog .p-button {
+  border: 1px solid #27272a !important;
+  background: transparent !important;
+  color: #e6edf3 !important;
+  box-shadow: none !important;
+}
+
+/* Primary confirm (accept) */
+.p-confirm-dialog .p-confirm-accept,
+.p-confirm-dialog .p-button.p-button-success,
+.p-confirm-dialog .p-button.p-button-primary {
+  border-color: #22d3ee !important;
+  color: #22d3ee !important;
+}
+
+.p-confirm-dialog .p-confirm-accept:hover,
+.p-confirm-dialog .p-button.p-button-success:hover,
+.p-confirm-dialog .p-button.p-button-primary:hover {
+  background-color: #22d3ee !important;
+  color: #000 !important;
+}
+
+/* Reject / Danger (delete) */
+.p-confirm-dialog .p-confirm-reject,
+.p-confirm-dialog .p-button.p-button-danger {
+  border-color: #dc2626 !important;
+  color: #ffb3b3 !important;
+}
+
+.p-confirm-dialog .p-confirm-reject:hover,
+.p-confirm-dialog .p-button.p-button-danger:hover {
+  background-color: #dc2626 !important;
+  color: #000 !important;
+}
+
+/* Ensure dialog footer buttons are aligned and separated */
+.p-confirm-dialog .p-dialog-footer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  justify-content: flex-end;
+  border-top: none !important;
+}
+
+/* Small crosshair marker */
+.p-confirm-dialog::after {
+  content: "+";
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  color: rgba(230,237,243,0.04);
+  font-size: 10px;
+}
+
+/* Refined ConfirmDialog sizing and layout for industrial UI */
+.p-dialog.p-confirmdialog, .p-confirm-dialog, .p-dialog.p-component.p-confirmdialog {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  max-width: 520px !important;
+  min-width: 320px !important;
+  width: auto !important;
+  box-sizing: border-box;
+  border-radius: 2px !important;
+  padding: 0 !important;
+}
+
+/* Header sizing */
+.p-dialog.p-confirmdialog .p-dialog-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.5rem !important;
+  height: 36px !important;
+  padding: 0.4rem 0.6rem !important;
+  border-bottom: 1px solid #27272a !important;
+}
+
+/* Header actions and close button */
+.p-dialog.p-confirmdialog .p-dialog-header-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+}
+
+.p-dialog.p-confirmdialog .p-dialog-header-actions .p-dialog-close-button,
+.p-dialog.p-confirmdialog .p-dialog-header .p-dialog-close-button {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  padding: 3px !important;
+  border-radius: 2px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* make the svg cross smaller */
+.p-dialog.p-confirmdialog .p-dialog-close-button .p-button-icon svg,
+.p-dialog.p-confirmdialog .p-dialog-close-button svg,
+.p-dialog.p-confirmdialog .p-dialog-close-button .p-icon {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Content */
+.p-dialog.p-confirmdialog .p-dialog-content {
+  padding: 0.9rem 1rem !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace !important;
+  font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+  color: #cbd5e1 !important;
+  white-space: normal !important;
+}
+
+/* Footer */
+.p-dialog.p-confirmdialog .p-dialog-footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+  padding: 0.6rem 0.75rem !important;
+  border-top: 1px solid #27272a !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+/* Buttons */
+.p-dialog.p-confirmdialog .p-dialog-footer .p-button {
+  padding: 6px 12px !important;
+  height: 32px !important;
+  min-width: 64px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  border-radius: 2px !important;
+  box-sizing: border-box !important;
+}
+
+/* Ensure primary/danger hover colors convert to cyan and red reversed text */
+.p-dialog.p-confirmdialog .p-button.p-button-success:hover,
+.p-dialog.p-confirmdialog .p-button.p-button-primary:hover,
+.p-dialog.p-confirmdialog .p-confirm-accept:hover {
+  background-color: #22d3ee !important;
+  color: #000 !important;
+}
+
+.p-dialog.p-confirmdialog .p-button.p-button-danger:hover,
+.p-dialog.p-confirmdialog .p-confirm-reject:hover {
+  background-color: #dc2626 !important;
+  color: #000 !important;
+}
+
+/* Prevent overflowing labels from pushing layout */
+.p-dialog.p-confirmdialog .p-button .p-button-label {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* keep close button visuals low-contrast */
+.p-dialog.p-confirmdialog .p-dialog-close-button {
+  border: 1px solid #27272a !important;
+  background-color: transparent !important;
+  color: #e6edf3 !important;
+}
