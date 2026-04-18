@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -46,12 +49,12 @@ jobs:
         run: |
           mkdir -p dist
           # backend binary
-          BIN_PATH=$(ls target/release | grep manager || true)
-          if [ -f target/release/manager-neo-backend ]; then
-            cp target/release/manager-neo-backend dist/manager-neo-backend
+          BIN_PATH=$(ls backend/target/release | grep manager || true)
+          if [ -f backend/target/release/manager-neo-backend ]; then
+            cp backend/target/release/manager-neo-backend dist/manager-neo-backend
           else
-            # try to find any executable in target/release
-            cp $(ls target/release | grep -E '^(manager|manager-neo|manager-neo-backend)$' || true) dist/ || true
+            # try to find any executable in backend/target/release
+            cp $(ls backend/target/release | grep -E '^(manager|manager-neo|manager-neo-backend)$' || true) dist/ || true
           fi
           # frontend dist
           if [ -d frontend/dist ]; then
