@@ -68,11 +68,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Assets
-        uses: softprops/action-upload-release-asset@v1
+      - name: Package artifacts (tar)
+        run: |
+          tar -czf dist/manager-neo-artifacts-${{ github.run_id }}.tar.gz -C dist . || true
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
         with:
-          files: dist/*
           upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/manager-neo-artifacts-${{ github.run_id }}.tar.gz
+          asset_name: manager-neo-artifacts-${{ github.run_id }}.tar.gz
+          asset_content_type: application/gzip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
