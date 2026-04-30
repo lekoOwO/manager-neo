@@ -1866,6 +1866,9 @@ fn detect_quant_from_filename(name: &str) -> Option<String> {
     if is_mmproj_filename(name) {
         return None;
     }
+    if let Some(detected) = detect_quant_like_slug_from_text(name) {
+        return Some(detected);
+    }
     let stem_key = quant_compare_key(name);
     let mut tokens = quant_tokens()
         .iter()
@@ -1961,29 +1964,24 @@ fn normalize_quant_slug(value: &str) -> Option<String> {
     if value.trim().is_empty() {
         return None;
     }
+    let raw = value.trim();
     let input = value
         .trim()
         .trim_matches('/')
         .trim_end_matches(".gguf")
         .trim_end_matches(".GGUF");
-    let input_upper = input.to_ascii_uppercase();
     let input_key = quant_compare_key(input);
     for token in quant_tokens() {
         if quant_compare_key(token) == input_key {
             return Some((*token).to_string());
         }
     }
-    if let Some(detected) = detect_quant_from_filename(input) {
-        // If the input includes a UD- prefix, preserve it in the canonical slug
-        // so directories like "UD-IQ4_XS" are accepted as canonical when their
-        // suffix matches a known quant token (e.g. "IQ4_XS").
-        if input_upper.starts_with("UD-") || input_upper.starts_with("UD") {
-            return Some(format!("UD-{}", detected));
-        }
-        return Some(detected);
+    if let Some(normalized) = normalize_quant_like_slug(input) {
+        return Some(normalized);
     }
-    if looks_like_quant_slug(input) {
-        return Some(input.to_ascii_uppercase());
+    if raw.ends_with(".gguf") || raw.ends_with(".GGUF") {
+        let detected = detect_quant_from_filename(input)?;
+        return Some(detected);
     }
     None
 }
@@ -2067,24 +2065,106 @@ fn quant_compare_key(value: &str) -> String {
         .to_ascii_uppercase()
 }
 
-fn looks_like_quant_slug(value: &str) -> bool {
-    let upper = value.to_ascii_uppercase();
-    if upper == "F16" || upper == "BF16" {
-        return true;
+fn detect_quant_like_slug_from_text(value: &str) -> Option<String> {
+    let stem = value
+        .trim()
+        .trim_end_matches(".gguf")
+        .trim_end_matches(".GGUF");
+    let stem = strip_shard_suffix(stem);
+    let mut best: Option<String> = None;
+    for (idx, ch) in stem.char_indices() {
+        if idx != 0 && !matches!(ch, '-' | '_' | '.' | ' ') {
+            continue;
+        }
+        let start = if idx == 0 { idx } else { idx + ch.len_utf8() };
+        let Some(candidate) = stem.get(start..) else {
+            continue;
+        };
+        if let Some(normalized) = normalize_quant_like_slug(candidate) {
+            if best
+                .as_ref()
+                .is_none_or(|current| normalized.len() > current.len())
+            {
+                best = Some(normalized);
+            }
+        }
     }
-    if let Some(rest) = upper.strip_prefix("UD-IQ") {
-        return rest.chars().next().is_some_and(|ch| ch.is_ascii_digit());
+    best
+}
+
+fn strip_shard_suffix(value: &str) -> &str {
+    for marker in ["-00001-of-", "-00002-of-", "-00003-of-"] {
+        if let Some((base, _)) = value.split_once(marker) {
+            return base;
+        }
     }
-    if let Some(rest) = upper.strip_prefix("UD-Q") {
-        return rest.chars().next().is_some_and(|ch| ch.is_ascii_digit());
+    value
+}
+
+fn normalize_quant_like_slug(value: &str) -> Option<String> {
+    let mut upper = value.trim().trim_matches('/').to_ascii_uppercase();
+    upper = upper.replace('-', "_");
+    if matches!(upper.as_str(), "F16" | "BF16" | "F32") {
+        return Some(upper);
     }
-    if let Some(rest) = upper.strip_prefix("IQ") {
-        return rest.chars().next().is_some_and(|ch| ch.is_ascii_digit());
+
+    let (has_ud_prefix, core) = if let Some(rest) = upper.strip_prefix("UD_") {
+        (true, rest)
+    } else if let Some(rest) = upper.strip_prefix("UD") {
+        if rest.starts_with('Q') || rest.starts_with("IQ") {
+            (true, rest)
+        } else {
+            (false, upper.as_str())
+        }
+    } else {
+        (false, upper.as_str())
+    };
+
+    let normalized_core = normalize_quant_core(core)?;
+    if has_ud_prefix {
+        Some(format!("UD-{normalized_core}"))
+    } else {
+        Some(normalized_core)
     }
-    if let Some(rest) = upper.strip_prefix('Q') {
-        return rest.chars().next().is_some_and(|ch| ch.is_ascii_digit());
+}
+
+fn normalize_quant_core(value: &str) -> Option<String> {
+    let (prefix, rest) = value
+        .strip_prefix("IQ")
+        .map(|rest| ("IQ", rest))
+        .or_else(|| value.strip_prefix('Q').map(|rest| ("Q", rest)))?;
+
+    let digit_count = rest.chars().take_while(|ch| ch.is_ascii_digit()).count();
+    if digit_count == 0 {
+        return None;
     }
-    false
+    let (digits, suffix) = rest.split_at(digit_count);
+    if suffix.is_empty() {
+        return Some(format!("{prefix}{digits}"));
+    }
+    if !suffix.starts_with('_') {
+        return None;
+    }
+
+    let groups = suffix
+        .trim_start_matches('_')
+        .split('_')
+        .collect::<Vec<_>>();
+    if groups.is_empty()
+        || groups
+            .iter()
+            .any(|group| group.is_empty() || !is_quant_suffix_component(group))
+    {
+        return None;
+    }
+    Some(format!("{prefix}{digits}_{}", groups.join("_")))
+}
+
+fn is_quant_suffix_component(value: &str) -> bool {
+    matches!(
+        value,
+        "K" | "S" | "M" | "L" | "XL" | "XS" | "XXS" | "NL" | "P" | "0" | "1"
+    )
 }
 
 fn quant_suffix_variants(quant: &str) -> Vec<String> {
@@ -3868,5 +3948,45 @@ fn parse_first_number(text: &str) -> Option<f64> {
         None
     } else {
         out.parse::<f64>().ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{detect_quant_from_filename, normalize_quant_slug};
+
+    #[test]
+    fn normalizes_extended_ud_quant_without_truncating() {
+        assert_eq!(
+            normalize_quant_slug("UD-Q6_K_XL").as_deref(),
+            Some("UD-Q6_K_XL")
+        );
+        assert_eq!(
+            normalize_quant_slug("ud-q6_k_xl").as_deref(),
+            Some("UD-Q6_K_XL")
+        );
+        assert_eq!(
+            normalize_quant_slug("UDQ6_K_XL").as_deref(),
+            Some("UD-Q6_K_XL")
+        );
+    }
+
+    #[test]
+    fn detects_extended_quant_from_filename() {
+        assert_eq!(
+            detect_quant_from_filename("Qwen3.6-27B-UD-Q6_K_XL.gguf").as_deref(),
+            Some("UD-Q6_K_XL")
+        );
+        assert_eq!(
+            detect_quant_from_filename("Qwen3.6-27B-UD-Q6_K_XL-00001-of-00002.gguf").as_deref(),
+            Some("UD-Q6_K_XL")
+        );
+    }
+
+    #[test]
+    fn does_not_treat_model_names_as_quant() {
+        assert_eq!(normalize_quant_slug("qwen3.6-27b"), None);
+        assert_eq!(detect_quant_from_filename("Qwen3.6-27B.gguf"), None);
+        assert_eq!(normalize_quant_slug("Q4_K_MODEL"), None);
     }
 }
