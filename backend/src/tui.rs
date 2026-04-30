@@ -1049,7 +1049,10 @@ fn draw_instances_tab(frame: &mut Frame<'_>, area: ratatui::layout::Rect, state:
             state.metrics.as_ref(),
         );
         Row::new(vec![
-            Cell::from(crate::service::strip_quant_suffix_from_name(&instance.name, &quant)),
+            Cell::from(crate::service::strip_quant_suffix_from_name(
+                &instance.name,
+                &quant,
+            )),
             Cell::from(family),
             Cell::from(format!("{model_name} [{quant}]")),
             Cell::from(instance.config.host_port.to_string()),
@@ -1398,15 +1401,13 @@ fn draw_families_tab(frame: &mut Frame<'_>, area: ratatui::layout::Rect, state: 
                         Cell::from("meta.variant"),
                         Cell::from((*variant).to_string()),
                     ])];
-                    rows.extend(
-                        diff.iter().map(|(key, value)| {
-                            Row::new(vec![
-                                Cell::from(config_source_label(key)),
-                                Cell::from(display_config_key(key)),
-                                Cell::from(value_to_inline(value)),
-                            ])
-                        }),
-                    );
+                    rows.extend(diff.iter().map(|(key, value)| {
+                        Row::new(vec![
+                            Cell::from(config_source_label(key)),
+                            Cell::from(display_config_key(key)),
+                            Cell::from(value_to_inline(value)),
+                        ])
+                    }));
                     rows
                 })
         })
@@ -1426,19 +1427,19 @@ fn draw_families_tab(frame: &mut Frame<'_>, area: ratatui::layout::Rect, state: 
                 Constraint::Min(1),
             ],
         )
-            .column_spacing(1)
-            .header(
-                Row::new(["Source", "Key", "Value"]).style(
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            )
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title("Diff Detail (o to edit override)"),
+        .column_spacing(1)
+        .header(
+            Row::new(["Source", "Key", "Value"]).style(
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
             ),
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title("Diff Detail (o to edit override)"),
+        ),
         inner[1],
     );
 }
@@ -1527,7 +1528,9 @@ fn draw_models_tab(frame: &mut Frame<'_>, area: ratatui::layout::Rect, state: &T
                 .filter(|file| !file.name.to_ascii_lowercase().contains("mmproj"))
                 .collect::<Vec<_>>();
             gguf_files.sort_by_key(|file| std::cmp::Reverse(file.size_bytes));
-            let detected_quant = gguf_files.first().and_then(|file| detect_quant_from_filename_tui(&file.name));
+            let detected_quant = gguf_files
+                .first()
+                .and_then(|file| detect_quant_from_filename_tui(&file.name));
             let mut rows = vec![
                 kv_row("Family", family),
                 kv_row("Model", model_name),
@@ -1538,7 +1541,10 @@ fn draw_models_tab(frame: &mut Frame<'_>, area: ratatui::layout::Rect, state: &T
             ];
             if let Some(det) = detected_quant {
                 if det != folder_quant {
-                    rows.push(kv_row("Quant Note", format!("folder: {} != detected: {}", folder_quant, det)));
+                    rows.push(kv_row(
+                        "Quant Note",
+                        format!("folder: {} != detected: {}", folder_quant, det),
+                    ));
                 }
             }
             if let Some(job) = &state.download_job {

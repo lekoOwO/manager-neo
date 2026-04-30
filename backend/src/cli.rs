@@ -257,8 +257,8 @@ pub async fn run() -> AppResult<()> {
     // We allow other chat-template-kwargs usages to remain (they may contain other
     // keys); only the legacy reasoning pattern will be rejected at startup.
     fn detect_legacy_flags(paths: &WorkspacePaths) -> AppResult<Vec<std::path::PathBuf>> {
-        use std::fs;
         use serde_json::Value;
+        use std::fs;
         let mut found = vec![];
 
         for entry in walkdir::WalkDir::new(&paths.instances_dir)
@@ -347,12 +347,16 @@ pub async fn run() -> AppResult<()> {
 
     let legacy = detect_legacy_flags(&workspace)?;
     if !legacy.is_empty() {
-        eprintln!("manager-neo detected legacy llama flags in compose files. These are no longer supported.");
+        eprintln!(
+            "manager-neo detected legacy llama flags in compose files. These are no longer supported."
+        );
         eprintln!("Files:");
         for p in &legacy {
             eprintln!("  - {}", p.display());
         }
-        eprintln!("Please run: 'manager-neo layout migrate' to convert compose files, then restart manager-neo.");
+        eprintln!(
+            "Please run: 'manager-neo layout migrate' to convert compose files, then restart manager-neo."
+        );
         // Exit by returning an error so caller exits with code 1
         return Err(crate::error::AppError::InvalidInput(
             "legacy flags detected; migration required".to_string(),
@@ -473,7 +477,9 @@ async fn handle_layout_commands(
             if dry_run {
                 println!(
                     "{}",
-                    serde_json::to_string_pretty(&service.migrate_workspace_layout_dry_run().await?)?
+                    serde_json::to_string_pretty(
+                        &service.migrate_workspace_layout_dry_run().await?
+                    )?
                 );
             } else {
                 println!(
@@ -584,7 +590,10 @@ async fn handle_instance_commands(
 async fn handle_model_commands(service: Arc<AppService>, command: ModelCommands) -> AppResult<()> {
     match command {
         ModelCommands::List => {
-            println!("{}", serde_json::to_string_pretty(&service.list_models_hierarchy()?)?)
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&service.list_models_hierarchy()?)?
+            )
         }
         ModelCommands::Download(args) => {
             let path = service

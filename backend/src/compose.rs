@@ -352,7 +352,11 @@ pub fn instance_config_to_compose(
                 if map.len() == 1 && map.get("enable_thinking").is_some() {
                     if let Some(Value::Bool(enabled)) = map.get("enable_thinking") {
                         command.push("--reasoning".to_string());
-                        command.push(if *enabled { "on".to_string() } else { "off".to_string() });
+                        command.push(if *enabled {
+                            "on".to_string()
+                        } else {
+                            "off".to_string()
+                        });
                     } else {
                         // non-boolean value, fallback to JSON arg
                         command.push("--chat-template-kwargs".to_string());
@@ -545,8 +549,12 @@ pub fn compose_project_name_for_instance(
             }
         }
     }
-    let (model, quant) = model_quant_from_ref(&config.model)
-        .unwrap_or_else(|| (sanitize_compose_segment(&config.name), "general".to_string()));
+    let (model, quant) = model_quant_from_ref(&config.model).unwrap_or_else(|| {
+        (
+            sanitize_compose_segment(&config.name),
+            "general".to_string(),
+        )
+    });
     normalize_compose_project_name(&format!("{model}-{quant}-general"))
 }
 

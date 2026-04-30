@@ -102,9 +102,15 @@ pub fn config_key_source(key: &str) -> ConfigKeySource {
     if root.is_empty() {
         return ConfigKeySource::Other;
     }
-    if LLAMA_CONFIG_ROOTS.iter().any(|candidate| *candidate == root) {
+    if LLAMA_CONFIG_ROOTS
+        .iter()
+        .any(|candidate| *candidate == root)
+    {
         ConfigKeySource::Llama
-    } else if COMPOSE_CONFIG_ROOTS.iter().any(|candidate| *candidate == root) {
+    } else if COMPOSE_CONFIG_ROOTS
+        .iter()
+        .any(|candidate| *candidate == root)
+    {
         ConfigKeySource::Compose
     } else if META_CONFIG_ROOTS.iter().any(|candidate| *candidate == root) {
         ConfigKeySource::Meta
@@ -469,7 +475,10 @@ impl Template {
 
 fn apply_dot_notation(root: &mut Value, key: &str, value: Value) -> AppResult<()> {
     let normalized = normalize_config_key_path(key);
-    let parts: Vec<&str> = normalized.split('.').filter(|part| !part.is_empty()).collect();
+    let parts: Vec<&str> = normalized
+        .split('.')
+        .filter(|part| !part.is_empty())
+        .collect();
     if parts.is_empty() {
         return Err(AppError::InvalidInput("empty override key".into()));
     }

@@ -753,7 +753,10 @@ fn flatten_diff(prefix: &str, left: &Value, right: &Value, diff: &mut HashMap<St
 
 fn apply_key_path(root: &mut Value, key: &str, value: Value) -> AppResult<()> {
     let normalized = normalize_config_key_path(key);
-    let parts: Vec<&str> = normalized.split('.').filter(|part| !part.is_empty()).collect();
+    let parts: Vec<&str> = normalized
+        .split('.')
+        .filter(|part| !part.is_empty())
+        .collect();
     if parts.is_empty() {
         return Err(AppError::InvalidInput("empty key path".to_string()));
     }

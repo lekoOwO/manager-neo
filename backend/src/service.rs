@@ -547,9 +547,9 @@ impl AppService {
                 last_err = Some(output.stderr);
             }
         }
-        Err(AppError::CommandFailed(
-            last_err.unwrap_or_else(|| format!("failed to fetch logs for instance '{name}'")),
-        ))
+        Err(AppError::CommandFailed(last_err.unwrap_or_else(|| {
+            format!("failed to fetch logs for instance '{name}'")
+        })))
     }
 
     pub async fn health_check(&self, name: &str) -> AppResult<Value> {
@@ -625,7 +625,9 @@ impl AppService {
                 let primary_non_mmproj = model
                     .files
                     .iter()
-                    .filter(|file| file.path.extension().and_then(|ext| ext.to_str()) == Some("gguf"))
+                    .filter(|file| {
+                        file.path.extension().and_then(|ext| ext.to_str()) == Some("gguf")
+                    })
                     .filter(|file| !is_mmproj_filename(&file.name))
                     .max_by_key(|f| f.size_bytes);
                 let detected_quant = primary_non_mmproj
@@ -661,7 +663,10 @@ impl AppService {
         Ok(rows)
     }
 
-    pub async fn plan_model_download(&self, req: ModelDownloadRequest) -> AppResult<ModelDownloadPlan> {
+    pub async fn plan_model_download(
+        &self,
+        req: ModelDownloadRequest,
+    ) -> AppResult<ModelDownloadPlan> {
         let (plan, _) = self.normalize_download_request(req).await?;
         Ok(plan)
     }
@@ -730,7 +735,8 @@ impl AppService {
         let downloader = Arc::clone(&self.downloader);
         let models_dir = self.paths.models_dir.clone();
         tokio::spawn(async move {
-            let (progress_tx, mut progress_rx) = tokio::sync::mpsc::unbounded_channel::<DownloadProgress>();
+            let (progress_tx, mut progress_rx) =
+                tokio::sync::mpsc::unbounded_channel::<DownloadProgress>();
             let progress_tasks = Arc::clone(&tasks);
             let progress_id = task_id.clone();
             let progress_worker = tokio::spawn(async move {
@@ -739,7 +745,8 @@ impl AppService {
                     if let Some(task) = guard.get_mut(&progress_id) {
                         task.phase = "downloading".to_string();
                         if let Some(percent) = progress.percent {
-                            task.progress_percent = task.progress_percent.max(percent.clamp(0.0, 99.5));
+                            task.progress_percent =
+                                task.progress_percent.max(percent.clamp(0.0, 99.5));
                         } else {
                             task.progress_percent = (task.progress_percent + 0.4).min(95.0);
                         }
@@ -1120,10 +1127,8 @@ async fn plan_model_download_request(
             .next_back()
             .unwrap_or("model")
             .to_string();
-        let inferred_model = infer_model_name_from_gguf_filename(
-            repo_file_basename(&selected_model_file),
-            &quant,
-        );
+        let inferred_model =
+            infer_model_name_from_gguf_filename(repo_file_basename(&selected_model_file), &quant);
         let mut model = if inferred_model.is_empty() {
             normalize_model_name(&repo_slug, &quant)
         } else {
@@ -1132,7 +1137,11 @@ async fn plan_model_download_request(
         if model.is_empty() {
             model = sanitize_segment(&repo_slug);
         }
-        let family_seed = if model.is_empty() { repo_slug } else { model.clone() };
+        let family_seed = if model.is_empty() {
+            repo_slug
+        } else {
+            model.clone()
+        };
         let family = infer_family_slug_from_name(&family_seed);
         let target_relative_dir = format!("{}/{}/{}", family, model, quant);
         (family, model, quant, target_relative_dir)
@@ -1229,9 +1238,9 @@ fn select_repo_files(repo_files: &[String], patterns: Option<&Vec<String>>) -> V
         .iter()
         .filter(|path| {
             let name = repo_file_basename(path);
-            patterns.iter().any(|pattern| {
-                wildcard_match(pattern, path) || wildcard_match(pattern, name)
-            })
+            patterns
+                .iter()
+                .any(|pattern| wildcard_match(pattern, path) || wildcard_match(pattern, name))
         })
         .cloned()
         .collect::<Vec<_>>()
@@ -1307,7 +1316,8 @@ fn compose_project_name(value: &str) -> String {
 
 fn compose_project_names_for_instance(paths: &WorkspacePaths, instance: &Instance) -> Vec<String> {
     let compose_path = instance.path.join("compose.yml");
-    let canonical = compose::compose_project_name_for_instance(&compose_path, paths, &instance.config);
+    let canonical =
+        compose::compose_project_name_for_instance(&compose_path, paths, &instance.config);
     let legacy = compose_project_name(&instance.name);
     if canonical == legacy {
         vec![canonical]
@@ -2187,7 +2197,12 @@ pub fn strip_quant_suffix_from_name(name: &str, quant: &str) -> String {
     let hyphen = upper.replace('_', "-").to_ascii_lowercase();
     let underscore = upper.replace('-', "_").to_ascii_lowercase();
     let compact = upper.replace(['-', '_'], "").to_ascii_lowercase();
-    let mut candidates = vec![hyphen.clone(), underscore.clone(), compact.clone(), upper.to_ascii_lowercase()];
+    let mut candidates = vec![
+        hyphen.clone(),
+        underscore.clone(),
+        compact.clone(),
+        upper.to_ascii_lowercase(),
+    ];
     if hyphen.starts_with("ud-") {
         candidates.push(hyphen.trim_start_matches("ud-").to_string());
     }
@@ -3569,7 +3584,10 @@ fn infer_block_count_from_tensors(tensors: &[GgufTensorInfo]) -> Option<u64> {
 fn apply_edit(root: &mut Value, key: &str, value: Value) -> AppResult<()> {
     let mut current = root;
     let normalized = normalize_config_key_path(key);
-    let parts: Vec<&str> = normalized.split('.').filter(|part| !part.is_empty()).collect();
+    let parts: Vec<&str> = normalized
+        .split('.')
+        .filter(|part| !part.is_empty())
+        .collect();
     if parts.is_empty() {
         return Err(AppError::InvalidInput("empty edit key".to_string()));
     }

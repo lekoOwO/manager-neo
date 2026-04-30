@@ -192,14 +192,21 @@ async fn list_instances(State(state): State<ApiState>) -> AppResult<Json<Value>>
     let mapped = instances
         .into_iter()
         .map(|inst| {
-            let quant = quant_map
-                .get(&inst.name)
-                .cloned()
-                .unwrap_or_else(|| inst.config.model.rsplit('/').next().unwrap_or("GENERAL").to_string());
+            let quant = quant_map.get(&inst.name).cloned().unwrap_or_else(|| {
+                inst.config
+                    .model
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or("GENERAL")
+                    .to_string()
+            });
             let display_name = crate::service::strip_quant_suffix_from_name(&inst.name, &quant);
             let mut value = serde_json::to_value(&inst).unwrap_or(serde_json::Value::Null);
             if let serde_json::Value::Object(map) = &mut value {
-                map.insert("display_name".to_string(), serde_json::Value::String(display_name));
+                map.insert(
+                    "display_name".to_string(),
+                    serde_json::Value::String(display_name),
+                );
             }
             value
         })
@@ -215,7 +222,10 @@ async fn list_instances_hierarchy(State(state): State<ApiState>) -> AppResult<Js
             let display = crate::service::strip_quant_suffix_from_name(&item.name, &item.quant);
             let mut value = serde_json::to_value(&item).unwrap_or(serde_json::Value::Null);
             if let serde_json::Value::Object(map) = &mut value {
-                map.insert("display_name".to_string(), serde_json::Value::String(display));
+                map.insert(
+                    "display_name".to_string(),
+                    serde_json::Value::String(display),
+                );
             }
             value
         })

@@ -88,7 +88,9 @@ pub async fn dispatch_tool(service: Arc<AppService>, request: McpToolRequest) ->
         }
         "plan_model_download" => {
             let req: ModelDownloadRequest = serde_json::from_value(request.arguments)?;
-            Ok(serde_json::to_value(service.plan_model_download(req).await?)?)
+            Ok(serde_json::to_value(
+                service.plan_model_download(req).await?,
+            )?)
         }
         "start_model_download_task" => {
             let req: ModelDownloadRequest = serde_json::from_value(request.arguments)?;
@@ -96,9 +98,9 @@ pub async fn dispatch_tool(service: Arc<AppService>, request: McpToolRequest) ->
                 service.start_model_download_task(req).await?,
             )?)
         }
-        "list_model_download_tasks" => {
-            Ok(serde_json::to_value(service.list_model_download_tasks().await)?)
-        }
+        "list_model_download_tasks" => Ok(serde_json::to_value(
+            service.list_model_download_tasks().await,
+        )?),
         "get_model_download_task" => {
             let id = required_str(&request.arguments, "id")?;
             Ok(serde_json::to_value(
